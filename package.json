@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "discord.js": "^14.7.1"
+  },
+  "name": "wavenbot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamdqrk/WavenBot.git"
+  },
+  "author": "dqrk",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/iamdqrk/WavenBot/issues"
+  },
+  "homepage": "https://github.com/iamdqrk/WavenBot#readme",
+  "description": ""
+}
