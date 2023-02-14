@@ -15,7 +15,7 @@ module.exports = {
 
   run: async (client, interaction) => {
 
-    let canal = interaction.guild.channels.cache.get("") // Canal de sugestões do servidor
+    let canal = interaction.guild.channels.cache.get("1074927398342111283") // Canal de sugestões do servidor
     if (!canal) {
         interaction.reply(`Olá ${interaction.user}, o canal de sugestões ainda não foi configurado no script!`)
     } else {
