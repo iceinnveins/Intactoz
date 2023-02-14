@@ -190,6 +190,20 @@ client.on("guildMemberRemove", (member) => {
     member.guild.channels.cache.get(canal_logs).send({ embeds: [embed], content: `${member}` }) // Caso queira que o usuário não seja mencionado, retire a parte do "content".
 })
 
+//VERIFICAÇÃO
+client.on("interactionCreate", async (interaction) => {
+  if (interaction.isButton()) {
+    if (interaction.customId === "verificar") {
+      let role_id = await db.get(`cargo_verificação_${interaction.guild.id}`);
+      let role = interaction.guild.roles.cache.get(role_id);
+      if (!role) return;
+      interaction.member.roles.add(role.id)
+      interaction.reply({ content: `Ola **${interaction.user.username}**, você foi verificado!`, ephemeral: true })
+    }
+  }
+})
+//VERIFICAÇÃO FIM
+
 //TICKETS
 
 client.on("interactionCreate", async (interaction) => {
