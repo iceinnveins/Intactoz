@@ -1,5 +1,7 @@
 const Discord = require("discord.js")
 
+const discordTranscripts = require('discord-html-transcripts')
+
 const config = require("./config.json")
 
 const client = new Discord.Client({
@@ -207,71 +209,231 @@ client.on("interactionCreate", async (interaction) => {
 //TICKETS
 
 client.on("interactionCreate", async (interaction) => {
-  if (interaction.isButton()) {
-    if (interaction.customId === "tickets_basico") {
-      let nome_canal = `🔖-${interaction.user.id}`;
-      let canal = interaction.guild.channels.cache.find(c => c.name === nome_canal);
 
-      if (canal) {
-        interaction.reply({ content: `Olá **${interaction.user.username}**, você já possui um ticket em ${canal}.`, ephemeral: true})
-      } else {
+  if (interaction.isModalSubmit()) {
 
-        let categoria = interaction.channel.parent;
-        if (!categoria) categoria = null;
+    if (interaction.customId === 'modal_ticket') {
 
-        interaction.guild.channels.create({
+      const titulo = interaction.fields.getTextInputValue('titulo');
+      const descrição = interaction.fields.getTextInputValue('descrição');
 
-          name: nome_canal,
-          parent: categoria,
-          type: Discord.ChannelType.GuildText,
-          permissionOverwrites: [
-            {
-              id: interaction.guild.id,
-              deny: [ Discord.PermissionFlagsBits.ViewChannel ]
-            },
-            {
-              id: interaction.user.id,
-              allow: [
-                Discord.PermissionFlagsBits.ViewChannel,
-                Discord.PermissionFlagsBits.AddReactions,
-                Discord.PermissionFlagsBits.SendMessages,
-                Discord.PermissionFlagsBits.AttachFiles,
-                Discord.PermissionFlagsBits.EmbedLinks
-              ]
-            },
-          ]
+      const titulo02 = interaction.fields.getTextInputValue('titulo02');
+      const descrição02 = interaction.fields.getTextInputValue('descrição02');
 
-        }).then( (chat) => {
+      await db.set(`titulo02_${interaction.guild.id}`, titulo02);
+      await db.set(`descrição02_${interaction.guild.id}`, descrição02);
 
-          interaction.reply({ content: `Olá **${interaction.user.username}**, seu ticket foi aberto em ${chat}.`, ephemeral: true })
+      let button_name = await db.get(`nome_button_abrir_${interaction.guild.id}`);
 
-          let embed = new Discord.EmbedBuilder()
-          .setColor("Random")
-          .setDescription(`Olá ${interaction.user}, você abriu o seu ticket.\nAguarde um momento para ser atendido.`);
+      const embed = new Discord.EmbedBuilder()
+        .setColor('#2f3136')
+        .setAuthor({ name: `${titulo}`, iconURL: interaction.guild.iconURL({ dynamic: true }) })
+        .setDescription(descrição)
+        .setFooter({ text: interaction.guild.name, iconURL: interaction.guild.iconURL({ dynamic: true })})
 
-          let botao_close = new Discord.ActionRowBuilder().addComponents(
-            new Discord.ButtonBuilder()
-            .setCustomId("close_ticket")
-            .setEmoji("🔒")
-            .setStyle(Discord.ButtonStyle.Danger)
-          );
+      const button = new Discord.ButtonBuilder()
+        .setCustomId('ticket')
+        .setLabel(button_name)
+        .setStyle(2)
+        .setEmoji('📨')
 
-          chat.send({ embeds: [embed], components: [botao_close] }).then(m => {
-            m.pin()
-          })
+      const row = new Discord.ActionRowBuilder().setComponents(button)
 
-        })
-      }
-    } else if (interaction.customId === "close_ticket") {
-      interaction.reply(`Olá ${interaction.user}, este ticket será excluído em 5 segundos.`)
-      try {
-        setTimeout( () => {
-          interaction.channel.delete().catch( e => { return; } )
-        }, 5000)
-      } catch (e) {
-        return;
-      }
-      
+      let channel = await db.get(`mensagem_ticket_canal_${interaction.guild.id}`);
+      let canal = interaction.guild.channels.cache.get(channel);
+
+      canal.send({ embeds: [embed], components: [row]})
+
+      await interaction.deferUpdate()
     }
   }
+
+  if (interaction.isButton) {
+
+    let cargo = await db.get(`cargo_ticket_${interaction.guild.id}`);
+
+    if (interaction.customId === 'ticket') {
+
+      if (interaction.guild.channels.cache.find((c) => c.topic === interaction.user.id)) { interaction.reply({ content: `**🚷 Calma, Você já tem um ticket criado -> ${interaction.guild.channels.cache.find(c => c.topic === interaction.user.id)}.**`, ephemeral: true }) }
+
+      let categoria = await db.get(`categoria_ticket_${interaction.guild.id}`);
+
+      interaction.guild.channels.create({
+        name: `🔖・ticket--${interaction.user.username}`,
+        type: Discord.ChannelType.GuildText,
+        topic: `${interaction.user.id}`,
+        parent: categoria,
+        permissionOverwrites: [
+          {
+            id: cargo,
+            allow: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages, Discord.PermissionFlagsBits.AttachFiles, Discord.PermissionFlagsBits.EmbedLinks, Discord.PermissionFlagsBits.AddReactions]
+          },
+          {
+            id: interaction.guild.id,
+            deny: [Discord.PermissionFlagsBits.ViewChannel]
+          },
+          {
+            id: interaction.user.id,
+            allow: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages, Discord.PermissionFlagsBits.AttachFiles, Discord.PermissionFlagsBits.EmbedLinks, Discord.PermissionFlagsBits.AddReactions]
+          }
+
+        ]
+
+      }).then( async (channel) => {
+
+        let titulo = await db.get(`titulo02_${interaction.guild.id}`);
+
+        let descrição = await db.get(`descrição02_${interaction.guild.id}`);
+
+        let iniciado = new Discord.EmbedBuilder()
+          .setColor('#2f3136')
+          .setAuthor({ name: `Suporte - ${interaction.guild.name}`, iconURL: interaction.guild.iconURL({ dynamic: true }) })
+          .setDescription(`Olá ${interaction.user}, Seu ticket foi criado com sucesso.`)
+          .setFooter({ text: interaction.guild.name, iconURL: interaction.guild.iconURL({ dynamic: true }) })
+
+        let atalho = new Discord.ButtonBuilder()
+          .setLabel('Atalho')
+          .setURL(channel.url)
+          .setStyle(Discord.ButtonStyle.Link)
+
+        const butão = new Discord.ActionRowBuilder().addComponents(atalho);
+
+        interaction.reply({ embeds: [iniciado], components: [butão], ephemeral: true })
+
+        let criado = new Discord.EmbedBuilder()
+          .setColor('#2f3136')
+          .setAuthor({ name: titulo, iconURL: interaction.guild.iconURL({ dynamic: true }) })
+          .setDescription(descrição)
+          .setFooter({ text: interaction.guild.name, iconURL: interaction.guild.iconURL({ dynamic: true }) })
+
+        let fechar = new Discord.ButtonBuilder()
+          .setCustomId('close')
+          .setStyle(2)
+          .setLabel('Fechar')
+
+        const deletar = new Discord.ActionRowBuilder().addComponents(fechar);
+
+        channel.send({ embeds: [criado], components: [deletar] }).then(m => { m.pin() })
+
+      })
+
+    }
+
+    if (interaction.customId === 'close') {
+
+      let ticket = interaction.channel.topic
+
+      interaction.channel.edit({
+
+        permissionOverwrites: [
+          {
+            id: cargo,
+            allow: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages, Discord.PermissionFlagsBits.AttachFiles, Discord.PermissionFlagsBits.EmbedLinks, Discord.PermissionFlagsBits.AddReactions],
+          },
+          {
+            id: ticket,
+            deny: [Discord.PermissionFlagsBits.ViewChannel],
+          },
+          {
+            id: interaction.guild.id,
+            deny: [Discord.PermissionFlagsBits.ViewChannel],
+          }
+
+        ],
+
+      })
+
+      let embed = new Discord.EmbedBuilder()
+        .setColor('#2f3136')
+        .setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL({ dynamic: true }) })
+        .setDescription(`O Membro ${interaction.user}\`(${interaction.user.id})\` Fechou o ticket, Escolha uma opção abaixo. `)
+
+      let botoes = new Discord.ActionRowBuilder().addComponents([
+
+        new Discord.ButtonBuilder()
+          .setStyle(Discord.ButtonStyle.Success)
+          .setLabel('Reabrir')
+          .setCustomId('reabrir'),
+        new Discord.ButtonBuilder()
+          .setStyle(Discord.ButtonStyle.Danger)
+          .setLabel('Deletar')
+          .setCustomId('deletar')])
+
+
+      interaction.reply({ embeds: [embed], components: [botoes] })
+
+    }
+
+    if (interaction.customId === 'reabrir') {
+
+      interaction.message.delete()
+
+      let ticket = interaction.channel.topic
+
+      interaction.channel.edit({
+
+        permissionOverwrites: [
+          {
+            id: cargo,
+            allow: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages, Discord.PermissionFlagsBits.AttachFiles, Discord.PermissionFlagsBits.EmbedLinks, Discord.PermissionFlagsBits.AddReactions],
+          },
+          {
+            id: ticket,
+            allow: [Discord.PermissionFlagsBits.ViewChannel, Discord.PermissionFlagsBits.SendMessages, Discord.PermissionFlagsBits.AttachFiles, Discord.PermissionFlagsBits.EmbedLinks, Discord.PermissionFlagsBits.AddReactions],
+          },
+          {
+            id: interaction.guild.id,
+            deny: [Discord.PermissionFlagsBits.ViewChannel],
+          }
+
+        ],
+
+      })
+
+      let embed = new Discord.EmbedBuilder()
+        .setColor('#2f3136')
+        .setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL({ dynamic: true }) })
+        .setDescription(`Olá <@${ticket}>, O Membro ${interaction.user} Reabriu seu ticket.`)
+
+      let button = new Discord.ButtonBuilder()
+        .setLabel('Apagar Mensagem')
+        .setStyle(2)
+        .setCustomId('msg')
+
+      const row = new Discord.ActionRowBuilder().addComponents(button)
+
+      interaction.channel.send({ content: `<@${ticket}>`, embeds: [embed], components: [row] })
+
+    }
+
+    if (interaction.customId === 'msg') {
+
+      interaction.message.delete()
+
+    }
+
+    if (interaction.customId === 'deletar') {
+
+      const topic = interaction.channel.topic
+
+      const channel = interaction.channel
+
+      const attachment = await discordTranscripts.createTranscript(channel);
+
+      interaction.channel.delete()
+
+      let embed = new Discord.EmbedBuilder()
+        .setDescription(`Ticket de <@${topic}>\`(${topic})\` \n Deletado por ${interaction.user}\`(${interaction.user.id})\``)
+        .setColor("#2f3136")
+        .setTimestamp()
+
+      let chat_log = await db.get(`canal_log_${interaction.guild.id}`);
+      let canal = interaction.guild.channels.cache.get(chat_log)
+
+      canal.send({ embeds: [embed], files: [attachment] })
+
+    }
+
+  }
+
 })
