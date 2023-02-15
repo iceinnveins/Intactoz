@@ -206,7 +206,6 @@ client.on("interactionCreate", async (interaction) => {
 })
 //VERIFICAÇÃO FIM
 
-
 //TICKETS
 
 client.on("interactionCreate", async (interaction) => {
