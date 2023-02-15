@@ -38,7 +38,7 @@ module.exports = {
       const staff = interaction.options.getMember("staff")
     const feedback = interaction.options.getString("feedback");
     const nota = interaction.options.getNumber("nota");
-    const roleId = ["1041465717465288826, 1041465717465288826"];/// ID do cargo, pode adicionar mais caso queira..
+    const roleId = ["1074931057180287066"];/// ID do cargo, pode adicionar mais caso queira..
     const role = interaction.guild.roles.cache.find(role => roleId.includes(role.id));
 
 if (!role) {
