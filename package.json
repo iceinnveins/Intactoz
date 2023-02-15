@@ -18,6 +18,7 @@
   "homepage": "https://github.com/iamdqrk/WavenBot#readme",
   "dependencies": {
     "better-sqlite3": "^8.1.0",
+    "canvas": "^2.11.0",
     "db": "^3.4.0",
     "discord-gamecord": "^4.2.0",
     "discord-html-transcripts": "^3.1.3",
