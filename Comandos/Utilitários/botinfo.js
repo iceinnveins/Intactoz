@@ -7,7 +7,7 @@ module.exports = {
 
   run: async (client, interaction) => {
 
-    let dono = "854515376020783154"; // Coloque seu ID
+    let dono = "8967266598530482186"; // Coloque seu ID
     let membros = client.users.cache.size;
     let servidores = client.guilds.cache.size;
     let canais = client.channels.cache.size;
