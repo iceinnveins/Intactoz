@@ -9,7 +9,7 @@ module.exports = {
   run: async (client, interaction, args) => {
     
     var fortunes = [
-        "VAI SE FUDER BlackWin",
+        "VAI SE FUDER <@414010792837644299>",
     ];
     await interaction.reply(
       fortunes[Math.floor(Math.random() * fortunes.length)]
