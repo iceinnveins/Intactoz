@@ -4,7 +4,7 @@ module.exports = {
     name: 'xingar',
     description: 'Xingue o blackwin.',
     type: 1,
-    options: [{name: 'user', type: 6, description: 'Coloque um usuário.', required: true }],
+    options: [{name: 'user', type: 6, description: 'Marque o otário do black.', required: true }],
 
   run: async (client, interaction, args) => {
     
