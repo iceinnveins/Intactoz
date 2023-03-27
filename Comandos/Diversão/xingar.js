@@ -1,15 +1,15 @@
 const { ApplicationCommandOptionType } = require("discord.js");
 
 module.exports = {
-    name: 'xingar',
-    description: 'Xingue o blackwin.',
+    name: 'pablin',
+    description: 'Pablin volte a call.',
     type: 1,
-    options: [{name: 'user', type: 6, description: 'Marque o otário do black.', required: true }],
+    options: [{name: 'user', type: 6, description: 'pablin!.', required: true }],
 
   run: async (client, interaction, args) => {
     
     var fortunes = [
-        "VAI SE FUDER <@414010792837644299>",
+        "VAI SE FUDER <@392343585627963393>",
     ];
     await interaction.reply(
       fortunes[Math.floor(Math.random() * fortunes.length)]
